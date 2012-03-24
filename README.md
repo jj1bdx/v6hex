@@ -44,6 +44,7 @@ which will be automatically fetched under the directory `support/`.
 ## Code authors:
 
 * Kenji Rikitake
+* Tuncer Ayaz for `support/getrebar` script
 
 ## THANKS to:
 
