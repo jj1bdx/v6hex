@@ -1,0 +1,85 @@
+%%% List of IPv6 keywords in Erlang/OTP R15B source code
+%%% Last update: 24-MAR-2012
+
+%%% atom "inet6" is an important keyword
+
+inet_parse:address/1
+inet_parse:ipv6_address/1
+inet_parse:ipv6strict_address/1 % review RFC4291
+inet_parse:ntoa/1
+
+inet_parse:hosts/2 % internal, now ignoring "%if" suffix
+
+-type inet:ip6_address()
+
+inet:getifaddrs/0
+inet:getifaddrs/1
+inet:gethostbyaddr/1
+inet:getaddrs/2 % second arg: inet6
+inet:gethostbyname_string/2 % second arg: inet6
+
+inet:i/0
+inet:i/1
+
+%%% interesting module results 
+%%% (no significant difference other than inet/inet6 flags):
+%%%     diff --unified inet_tcp.erl inet6_tcp.erl
+%%%     diff --unified inet_udp.erl inet6_udp.erl
+%%%     diff --unified inet_sctp.erl inet6_sctp.erl
+%%%     diff --unified inet_tcp_dist.erl inet6_tcp_dist.erl
+
+inet_config:set_hostname/0 % internal, dependent on inet_udp:open/2
+
+%%% inet_db.erl has tcp/udp/sctp module config params
+%%% for the gen_server callbacks
+
+inet_db:set_inet6/1
+inet_db:dn_ip6_int/8 % internal, for 8 elements of an IPv6 address tuple
+inet_db:make_hostent(Name, Addrs, Aliases, ?S_AAAA)
+inet_db:handle_call({add_host, IPv6address, Names})
+inet_db:handle_call({del_host, IPv6address})
+
+inet_dns.erl: ?S_AAAA related lines
+
+inet_dns.hrl: --define(T_AAAA), --define(S_AAAA)
+
+inet_int.hrl: --define(INET_AF_INET6), --define(SCTP_FLAG_PMTUD_*), 
+	      --define(ip6(A,B,C,D,E,F,G,H)
+
+-type inet_res:res_option({inet6, boolean()})
+-type inet_res:dns_data() % inet:ip6_address()
+
+inet_res:gethostbyaddr/1
+inet_res:gethostbyaddr_tm/2
+inet_res:gethostbyname/1
+inet_res:gethostbyname_tm/3
+inet_res:udp_open/2 % internal (record #sock)
+inet_res:udp_connect/2 % internal (record #sock)
+
+inet:ifget/3
+inet:ifset/3
+
+%% inet_drv.c:
+%%   AF_INET6
+%%   INET_IFOPT_MTU
+%%   sin6_flowinfo
+%%   INET_AF_INET6
+
+%% erl_mtrace.c:erts_sock_connect() has IPv4-only socket dependency 
+
+%% How can I send multicast packets with ICMPv6?
+
+prim_inet:?ip6(Tuple)
+prim_inet:ip6_to_bytes/1
+prim_inet:get_ip6/1
+
+inet_SUITE:parse_address/1
+inet_SUITE:get_ipv6_hosts/1
+
+%% other interesting functions in inet_SUITE.erl:
+%% *_v6, ipv4_to_ipv6
+
+%% other interesting variables in inet_SUITE.erl:
+%% V6Strict, V6Err
+
+[End of memorandum]
