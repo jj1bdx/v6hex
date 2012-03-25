@@ -1,5 +1,6 @@
 %% v6hex.erl:
 %% IPv6-address tuple to hex string conversion
+%% (and miscellaneous IPv6 goodies)
 %% by Kenji Rikitake
 %% MIT license (see the end of this module)
 
@@ -8,7 +9,9 @@
 -export([v6hex/1, 
 	 v6hex_revarpa/1,
 	 v6hex_addr/1,
-	 v6hex_tuple/1]).
+	 v6hex_tuple/1,
+	 v64adrs/1,
+	 v64adrs/2]).
 
 hexdigit(Digit) when Digit >= 0, Digit =< 15 ->
   if Digit >= 10 ->
@@ -96,6 +99,31 @@ v6hex_tuple(Addr) ->
      C24, C25, C26, C27, $,,
      $1, $6, $#, 
      C28, C29, C30, C31, $}].
+
+%% The v64adrs/1 function first looks up the AAAA RRset of
+%% the given name and wait for ?V6_TIMEOUT milliseconds;
+%% if the AAAA RRset is found out that is returned.
+%% when timed out it looks up the A RRset instead
+%% and returns the lookup result.
+%% In v64adrs/2 the nameserver list (as in inet_res module)
+%% is specified.
+
+-define(V6_TIMEOUT, 200).
+
+v64adrs(Name) ->
+    v64adrs(Name, []).
+
+v64adrs(Name, NS) ->
+    NSL = case NS of
+	      [] -> [];
+	      _Else -> [{nameservers, _Else}]
+	  end,
+    case (catch inet_res:lookup(Name, in, aaaa,
+				NSL, ?V6_TIMEOUT)) of
+	[] ->
+	    inet_res:lookup(Name, in, a, NSL);
+	_Ans -> _Ans
+    end.
 
 %% end of module
 
