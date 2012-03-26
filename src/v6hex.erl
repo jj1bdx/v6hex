@@ -11,7 +11,9 @@
 	 v6hex_addr/1,
 	 v6hex_tuple/1,
 	 v64adrs/1,
-	 v64adrs/2]).
+	 v64adrs/2,
+	 v64adrs_async/1,
+	 v64adrs_async/2]).
 
 hexdigit(Digit) when Digit >= 0, Digit =< 15 ->
   if Digit >= 10 ->
@@ -124,6 +126,99 @@ v64adrs(Name, NS) ->
 	    inet_res:lookup(Name, in, a, NSL);
 	_Ans -> _Ans
     end.
+
+%% Caution: the following asynchronous code is
+%% highly experimental.
+
+%% The v64adrs_async/1 function
+%% looks up the AAAA and AA RRsets for the given name
+%% simultaneously by spawning the processes,
+%% and wait for ?V6_TIMEOUT milliseconds to
+%% the AAAA RRset *only*;
+%% after the timeout it will return
+%% the value found earlier in either AAAA or AA RRsets.
+
+%% In v64adrs_async/2 the nameserver list (as in inet_res module)
+%% is specified.
+
+%% Is this timeout necessary?
+-define(LOOKUP_TIMEOUT, 30000).
+
+v64adrs_async(Name) ->
+    v64adrs_async(Name, []).
+
+v64adrs_async(Name, NS) ->
+    NSL = case NS of
+	      [] -> [];
+	      _Else -> [{nameservers, _Else}]
+	  end,
+    Pid = self(),
+    C1 = spawn_link(
+	   fun() ->
+		   Pid ! {self(), aaaa,
+			  inet_res:lookup(Name, in, aaaa,
+					  NSL, ?LOOKUP_TIMEOUT)} end),
+    C2 = spawn_link(
+	   fun() ->
+		   Pid ! {self(), a,
+			  inet_res:lookup(Name, in, a,
+					  NSL, ?LOOKUP_TIMEOUT)} end),
+    %% io:format("Pid = ~p C1=~p C2=~p ~n", [Pid, C1, C2]),
+    receive
+	{C1, aaaa, RR} when RR =/= [] ->
+	    exit_and_discard(C2),
+	    RR
+    after
+	?V6_TIMEOUT ->
+	    wait_resolver(C1, C2, false, false)
+    end.
+
+wait_resolver(_P1, _P2, true, true) ->
+    %% io:format("P1=~p P2=~p true, true~n", [_P1, _P2]),
+    [];
+wait_resolver(P1, P2, F1, F2) ->
+    %% io:format("P1=~p P2=~p F1=~p F2=~p~n", [P1, P2, F1, F2]),
+    receive
+	{P1, aaaa, []} -> % discard
+	    wait_resolver(P1, P2, true, F2);
+	{P2, a, []} -> % discard
+	    wait_resolver(P1, P2, F1, true);
+	{P1, aaaa, R1} when F1 == false ->
+	    case F2 of
+		true -> % no process message waiting
+		    exit(P2, normal);
+		    %% io:format("exit killed Pid = ~p~n", [P2]);
+		false ->
+		    exit_and_discard(P2)
+	    end,
+	    R1;
+	{P2, a, R2} when F2 == false ->
+	    case F1 of
+		true -> % no process message waiting
+		    exit(P1, normal); 
+		    %% io:format("exit killed Pid = ~p~n", [P1]);
+		false ->
+		    exit_and_discard(P1)
+	    end,
+	    R2
+    end.
+
+exit_and_discard(P) ->
+    exit(P, normal),
+    %% io:format("exit_and_discard/1 killed Pid = ~p~n", [P]),
+    receive
+	{P, _Q, _R} -> % discard one message from the assigned process
+	    %% io:format("Msg = ~p~n", [{P, _Q, _R}]),
+	    ok;
+	_Else -> % unexpected message
+	    %% io:format("_Else = ~p~n", [_Else]),
+	    {error, {einval, _Else}}
+    %% timeout trap: for debugging only
+    %% after 1000 -> 
+    %%      io:format("exit_and_discard/1 timed out~n", [])
+    end.
+
+
 
 %% end of module
 
