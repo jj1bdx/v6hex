@@ -1,8 +1,8 @@
 # v6hex: IPv6 hex address library for Erlang
 
-(and more IPv6 goodies)
+(and more IPv6 goodies, including v6-to-v4 resolver codes)
 
-* Version 0.0.1
+* Version 0.0.2 26-MAR-2012
 * written by Kenji Rikitake
 * Email contact: <kenji.rikitake@acm.org>
 
