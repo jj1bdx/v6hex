@@ -1,0 +1,8 @@
+{application, v6hex, [
+    {description, "IPv6 hex address library for Erlang"},
+    {vsn, "0.0.2"},
+    {env, []},
+    {registered, []},
+    {modules, []},
+    {applications, [kernel, stdlib]}
+]}.
