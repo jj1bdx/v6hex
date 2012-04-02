@@ -52,6 +52,7 @@ which will be automatically fetched under the directory `support/`.
 
 * Francesco Cesarini
 * Fr&eacute;d&eacute;ric Trottier-H&eacute;bert
+* Ryosuke Nakai
 
 ## ACKNOWLEDGMENTS
 
