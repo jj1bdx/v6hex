@@ -163,7 +163,8 @@ v64adrs_async(Name, NS) ->
 		   Pid ! {self(), a,
 			  inet_res:lookup(Name, in, a,
 					  NSL, ?LOOKUP_TIMEOUT)} end),
-    %% io:format("Pid = ~p C1=~p C2=~p ~n", [Pid, C1, C2]),
+    % For time in ?V6_TIMEOUT [ms]
+    % Waiting for AAAA RR only
     receive
 	{C1, aaaa, RR} when RR =/= [] ->
 	    exit_and_discard(C2),
@@ -173,11 +174,13 @@ v64adrs_async(Name, NS) ->
 	    wait_resolver(C1, C2, false, false)
     end.
 
-wait_resolver(_P1, _P2, true, true) ->
-    %% io:format("P1=~p P2=~p true, true~n", [_P1, _P2]),
-    [];
+% Wait for either A RR or AAAA RR
+% and return which is received earlier
+% (unless it is a null list)
+% then kill the unnecessary process
+
+wait_resolver(_P1, _P2, true, true) -> [];
 wait_resolver(P1, P2, F1, F2) ->
-    %% io:format("P1=~p P2=~p F1=~p F2=~p~n", [P1, P2, F1, F2]),
     receive
 	{P1, aaaa, []} -> % discard
 	    wait_resolver(P1, P2, true, F2);
@@ -187,38 +190,28 @@ wait_resolver(P1, P2, F1, F2) ->
 	    case F2 of
 		true -> % no process message waiting
 		    exit(P2, normal);
-		    %% io:format("exit killed Pid = ~p~n", [P2]);
 		false ->
-		    exit_and_discard(P2)
+		    ok = exit_and_discard(P2)
 	    end,
 	    R1;
 	{P2, a, R2} when F2 == false ->
 	    case F1 of
 		true -> % no process message waiting
 		    exit(P1, normal); 
-		    %% io:format("exit killed Pid = ~p~n", [P1]);
 		false ->
-		    exit_and_discard(P1)
+		    ok = exit_and_discard(P1)
 	    end,
 	    R2
     end.
 
 exit_and_discard(P) ->
     exit(P, normal),
-    %% io:format("exit_and_discard/1 killed Pid = ~p~n", [P]),
     receive
 	{P, _Q, _R} -> % discard one message from the assigned process
-	    %% io:format("Msg = ~p~n", [{P, _Q, _R}]),
 	    ok;
 	_Else -> % unexpected message
-	    %% io:format("_Else = ~p~n", [_Else]),
 	    {error, {einval, _Else}}
-    %% timeout trap: for debugging only
-    %% after 1000 -> 
-    %%      io:format("exit_and_discard/1 timed out~n", [])
     end.
-
-
 
 %% end of module
 
