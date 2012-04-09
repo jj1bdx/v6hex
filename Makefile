@@ -1,8 +1,7 @@
-# GNU Make dependent
-
 .PHONY: compile clean doc eunit
 
-REBAR=$(shell sh -c "PATH='$(PATH)':support which rebar||support/getrebar||echo false")
+REBAR=@`sh -c "PATH='$(PATH)':support which rebar\
+	||support/getrebar||echo false"`
 
 compile:
 	$(REBAR) compile
