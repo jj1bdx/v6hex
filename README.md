@@ -2,17 +2,17 @@
 
 (and more IPv6 goodies, including v6-to-v4 resolver codes)
 
-* Version 0.0.2 26-MAR-2012
+* Version 0.0.3 17-MAR-2014
 * written by Kenji Rikitake
 * Email contact: <kenji.rikitake@acm.org>
 
-Copyright (c) 2012 Kenji Rikitake. All rights reserved.
+Copyright (c) 2012, 2014 Kenji Rikitake. All rights reserved.
 
 See LICENSE.txt for the license (MIT license).
 
 ## Tested platforms
 
-* FreeBSD/amd64 9.0-RELEASE with Erlang/OTP R15B
+* FreeBSD/amd64 10.0-STABLE with Erlang/OTP R16B03-1
 
 ## Building 
 
