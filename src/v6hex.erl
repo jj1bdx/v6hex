@@ -6,7 +6,7 @@
 
 -module(v6hex).
 
--export([v6hex/1, 
+-export([v6hex/1,
 	 v6hex_revarpa/1,
 	 v6hex_addr/1,
 	 v6hex_tuple/1,
@@ -14,6 +14,8 @@
 	 v64adrs/2,
 	 v64adrs_async/1,
 	 v64adrs_async/2]).
+
+-spec hexdigit(0..15) -> byte().
 
 hexdigit(Digit) when Digit >= 0, Digit =< 15 ->
   if Digit >= 10 ->
@@ -24,14 +26,20 @@ hexdigit(Digit) when Digit >= 0, Digit =< 15 ->
 
 %% basic hex conversion
 
+-type v6field() :: 0..65535.
+-type v6addr() :: {v6field(), v6field(), v6field(), v6field(),
+                   v6field(), v6field(), v6field(), v6field()}.
+
+-spec v6hex(v6addr()) -> [byte()].
+
 v6hex({T0, T1, T2, T3, T4, T5, T6, T7})
-  when T0 >= 0, T0 =< 65535, 
-       T1 >= 0, T1 =< 65535, 
-       T2 >= 0, T2 =< 65535, 
-       T3 >= 0, T3 =< 65535, 
-       T4 >= 0, T4 =< 65535, 
-       T5 >= 0, T5 =< 65535, 
-       T6 >= 0, T6 =< 65535, 
+  when T0 >= 0, T0 =< 65535,
+       T1 >= 0, T1 =< 65535,
+       T2 >= 0, T2 =< 65535,
+       T3 >= 0, T3 =< 65535,
+       T4 >= 0, T4 =< 65535,
+       T5 >= 0, T5 =< 65535,
+       T6 >= 0, T6 =< 65535,
        T7 >= 0, T7 =< 65535 ->
     % make binaries from the integers
     % and split the binaries into the hex digit binaries
@@ -55,13 +63,17 @@ v6hex({T0, T1, T2, T3, T4, T5, T6, T7})
 
 %% Conversion to ip6.arpa reverse lookup name
 
+-spec v6hex_revarpa(v6addr()) -> string().
+
 v6hex_revarpa(Addr) ->
     lists:append([
 		  lists:append(lists:map(fun(D) -> [D, $.] end,
 					 lists:reverse(v6hex(Addr)))),
 		  "in6.arpa"]).
 
-%% Conversion to IPv6 canonical format address 
+%% Conversion to IPv6 canonical format address
+
+-spec v6hex_addr(v6addr()) -> string().
 
 v6hex_addr(Addr) ->
     [C0, C1, C2, C3, C4, C5, C6, C7,
@@ -69,7 +81,7 @@ v6hex_addr(Addr) ->
      C16, C17, C18, C19, C20, C21, C22, C23,
      C24, C25, C26, C27, C28, C29, C30, C31] = v6hex(Addr),
     [C0, C1, C2, C3, $:,
-     C4, C5, C6, C7, $:, 
+     C4, C5, C6, C7, $:,
      C8, C9, C10, C11, $:,
      C12, C13, C14, C15, $:,
      C16, C17, C18, C19, $:,
@@ -79,27 +91,29 @@ v6hex_addr(Addr) ->
 
 %% Conversion to tuple-format string with hex-format elements
 
+-spec v6hex_tuple(v6addr()) -> string().
+
 v6hex_tuple(Addr) ->
     [C0, C1, C2, C3, C4, C5, C6, C7,
      C8, C9, C10, C11, C12, C13, C14, C15,
      C16, C17, C18, C19, C20, C21, C22, C23,
      C24, C25, C26, C27, C28, C29, C30, C31] = v6hex(Addr),
     [${,
-     $1, $6, $#, 
+     $1, $6, $#,
      C0, C1, C2, C3, $,,
-     $1, $6, $#, 
-     C4, C5, C6, C7, $,, 
-     $1, $6, $#, 
+     $1, $6, $#,
+     C4, C5, C6, C7, $,,
+     $1, $6, $#,
      C8, C9, C10, C11, $,,
-     $1, $6, $#, 
+     $1, $6, $#,
      C12, C13, C14, C15, $,,
-     $1, $6, $#, 
+     $1, $6, $#,
      C16, C17, C18, C19, $,,
-     $1, $6, $#, 
+     $1, $6, $#,
      C20, C21, C22, C23, $,,
-     $1, $6, $#, 
+     $1, $6, $#,
      C24, C25, C26, C27, $,,
-     $1, $6, $#, 
+     $1, $6, $#,
      C28, C29, C30, C31, $}].
 
 %% The v64adrs/1 function first looks up the AAAA RRset of
@@ -112,8 +126,37 @@ v6hex_tuple(Addr) ->
 
 -define(V6_TIMEOUT, 200).
 
+-type dns_name() :: string().
+
+%% from lib/kernel/src/inet_res.erl
+
+-type dns_data() ::
+        dns_name()
+      | inet:ip4_address()
+      | inet:ip6_address()
+      | {MName :: dns_name(),
+         RName :: dns_name(),
+         Serial :: integer(),
+         Refresh :: integer(),
+         Retry :: integer(),
+         Expiry :: integer(),
+         Minimum :: integer()}
+      | {inet:ip4_address(), Proto :: integer(), BitMap :: binary()}
+      | {CpuString :: string(), OsString :: string()}
+      | {RM :: dns_name(), EM :: dns_name()}
+      | {Prio :: integer(), dns_name()}
+      | {Prio :: integer(),Weight :: integer(),Port :: integer(),dns_name()}
+      | {Order :: integer(),Preference :: integer(),Flags :: string(),
+         Services :: string(),Regexp :: string(), dns_name()}
+      | [string()]
+      | binary().
+
+-spec v64adrs(dns_name()) -> [dns_data()].
+
 v64adrs(Name) ->
     v64adrs(Name, []).
+
+-spec v64adrs(dns_name(), [dns_name()]) -> [dns_data()].
 
 v64adrs(Name, NS) ->
     NSL = case NS of
@@ -144,8 +187,12 @@ v64adrs(Name, NS) ->
 %% Is this timeout necessary?
 -define(LOOKUP_TIMEOUT, 30000).
 
+-spec v64adrs_async(dns_name()) -> [dns_data()].
+
 v64adrs_async(Name) ->
     v64adrs_async(Name, []).
+
+-spec v64adrs_async(dns_name(), [dns_name()]) -> [dns_data()].
 
 v64adrs_async(Name, NS) ->
     NSL = case NS of
@@ -179,6 +226,8 @@ v64adrs_async(Name, NS) ->
 % (unless it is a null list)
 % then kill the unnecessary process
 
+-spec wait_resolver(pid(), pid(), boolean(), boolean()) -> dns_data().
+
 wait_resolver(_P1, _P2, true, true) -> [];
 wait_resolver(P1, P2, F1, F2) ->
     receive
@@ -197,12 +246,14 @@ wait_resolver(P1, P2, F1, F2) ->
 	{P2, a, R2} when F2 == false ->
 	    case F1 of
 		true -> % no process message waiting
-		    exit(P1, normal); 
+		    exit(P1, normal);
 		false ->
 		    ok = exit_and_discard(P1)
 	    end,
 	    R2
     end.
+
+-spec exit_and_discard(pid()) -> ok | {error, {einval, term()}}.
 
 exit_and_discard(P) ->
     exit(P, normal),
@@ -217,7 +268,7 @@ exit_and_discard(P) ->
 
 %% License document: MIT license
 
-%% Copyright (c) 2012 Kenji Rikitake.
+%% Copyright (c) 2012, 2014 Kenji Rikitake.
 
 %% Permission is hereby granted, free of charge, to any person obtaining a
 %% copy of this software and associated documentation files (the
