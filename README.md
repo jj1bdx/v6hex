@@ -12,7 +12,8 @@ See LICENSE.txt for the license (MIT license).
 
 ## Tested platforms
 
-* FreeBSD/amd64 10.0-STABLE with Erlang/OTP R16B03-1
+* FreeBSD/amd64 10.0-STABLE with Erlang/OTP 17.1
+* OS X 10.9.3 with Erlang/OTP 17.1
 
 ## Building 
 
