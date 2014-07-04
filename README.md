@@ -19,12 +19,12 @@ See LICENSE.txt for the license (MIT license).
 
 * Use GNU make and then
 
-    make compile
+    make
 
 (Note: on FreeBSD, GNU make should be invoked as `gmake`.)
 
-The build script is Basho's rebar at <https://github.com/basho/rebar>,
-which will be automatically fetched under the directory `support/`.
+The build script is based on
+[erlang.mk](https://github.com/extend/erlang.mk).
 
 ## Documentation (not yet)
 
