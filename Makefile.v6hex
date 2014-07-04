@@ -1,8 +1,8 @@
-# erlang.mk Makefile for tinymt-erlang
+# erlang.mk Makefile for v6hex
 
 PROJECT = v6hex
 
-#CT_SUITES = tinymt32
+#CT_SUITES = v6hex
 ERLC_OPTS = -Werror +debug_info +warn_export_all +warn_export_vars \
 	        +warn_shadow_vars +warn_obsolete_guard +bin_opt_info +warn_missing_spec
 
