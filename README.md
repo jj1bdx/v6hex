@@ -17,32 +17,15 @@ See LICENSE.txt for the license (MIT license).
 
 ## Building 
 
-* Use GNU make and then
-
     make
-
-(Note: on FreeBSD, GNU make should be invoked as `gmake`.)
 
 The build script is based on
 [erlang.mk](https://github.com/extend/erlang.mk).
 
-## Documentation (not yet)
-
-* For the HTML documentation files of the Erlang source 
-
-    make doc
-
-    The documentation will be accessible at `doc/index.html`.
-
-## Testing (not yet)
-
-* For unit testing with EUnit, do
-
-    make eunit
-
 ## TODO
 
 * Edoc-compatible documentation
+* Test cases
 
 ## Code authors:
 
