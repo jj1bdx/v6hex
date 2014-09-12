@@ -214,7 +214,7 @@ v64adrs_async(Name, NS) ->
     % Waiting for AAAA RR only
     receive
 	{C1, aaaa, RR} when RR =/= [] ->
-	    exit_and_discard(C2),
+	    ok = exit_and_discard(C2),
 	    RR
     after
 	?V6_TIMEOUT ->
